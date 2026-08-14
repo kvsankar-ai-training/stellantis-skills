@@ -7,6 +7,7 @@ A collection of GitHub Copilot skills packaged for reuse across projects, plus a
 | Skill | Description |
 | --- | --- |
 | [stellantis-srs-create](skills/stellantis-srs-create/SKILL.md) | Interviews the user about a rough product idea, then drafts a Leffingwell-style Software Requirements Specification (SRS) and a companion Acceptance Tests document, using slug-based identifiers throughout. |
+| [stellantis-commit-create](skills/stellantis-commit-create/SKILL.md) | Crafts Git commit messages following the Conventional Commits specification, with a short imperative subject line, a blank line, and a wrapped multi-line body. |
 
 ## Installing Skills
 
