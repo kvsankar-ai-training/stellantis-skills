@@ -8,10 +8,13 @@ A collection of GitHub Copilot skills packaged for reuse across projects, plus a
 | --- | --- |
 | [stellantis-srs-create](skills/stellantis-srs-create/SKILL.md) | Interviews the user about a rough product idea, then drafts a Leffingwell-style Software Requirements Specification (SRS) and a companion Acceptance Tests document, using slug-based identifiers throughout. |
 | [stellantis-commit-create](skills/stellantis-commit-create/SKILL.md) | Crafts Git commit messages following the Conventional Commits specification, with a short imperative subject line, a blank line, and a wrapped multi-line body. |
+| [stellantis-confluence-to-md](skills/stellantis-confluence-to-md/SKILL.md) | Downloads a Confluence page by URL and converts it to Markdown using token-based auth (Cloud API token or Server/DC PAT). Dependencies and `.env` are provisioned automatically at install time -- no per-project setup needed. |
 
 ## Installing Skills
 
 Skills are installed into your user-level GitHub Copilot skills directory (`%USERPROFILE%\.copilot\skills\`), where Copilot in VS Code discovers them automatically.
+
+For any skill that ships a `requirements.txt`, the installer also provisions a private Python virtual environment inside the installed skill folder and installs its dependencies, so there is nothing to `pip install` manually before first use. If a skill ships a `.env.example`, a `.env` is seeded from it on first install and preserved across re-installs/updates, so credentials are configured once, centrally, instead of per project.
 
 Install everything in this repo:
 

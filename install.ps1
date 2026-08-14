@@ -9,6 +9,13 @@
     copies one or all of them into "$env:USERPROFILE\.copilot\skills\<skill-name>\",
     which is where GitHub Copilot (VS Code) discovers user-level skills.
 
+    For skills that ship a requirements.txt, this script also provisions a private
+    Python virtual environment inside the installed skill folder and installs the
+    dependencies into it, so no manual "pip install" is needed before first use.
+    For skills that ship a .env.example, a .env is seeded from it on first install
+    (and preserved across re-installs/updates) so credentials only need to be set
+    once, in one place, regardless of which project workspace the skill is used from.
+
 .PARAMETER SkillName
     Name of a single skill folder under .\skills to install/uninstall (e.g.
     "stellantis-srs-create"). If omitted, all skills in the repo are processed.
@@ -65,6 +72,9 @@ if ($Uninstall) {
     foreach ($skillDir in $sourceSkillDirs) {
         $targetPath = Join-Path $targetSkillsRoot $skillDir.Name
         if (Test-Path $targetPath) {
+            if (Test-Path (Join-Path $targetPath '.env')) {
+                Write-Warning "'$($skillDir.Name)' has a .env file with credentials that will be deleted."
+            }
             Remove-Item -Path $targetPath -Recurse -Force
             Write-Host "Removed skill '$($skillDir.Name)' from $targetPath" -ForegroundColor Yellow
         }
@@ -87,11 +97,55 @@ foreach ($skillDir in $sourceSkillDirs) {
     }
 
     $targetPath = Join-Path $targetSkillsRoot $skillDir.Name
+
+    # Preserve an existing .env (user credentials) across re-installs/updates.
+    $existingEnvPath = Join-Path $targetPath '.env'
+    $preservedEnvContent = $null
+    if (Test-Path $existingEnvPath) {
+        $preservedEnvContent = Get-Content -Path $existingEnvPath -Raw
+    }
+
     if (Test-Path $targetPath) {
         Remove-Item -Path $targetPath -Recurse -Force
     }
     Copy-Item -Path $skillDir.FullName -Destination $targetPath -Recurse -Force
     Write-Host "Installed skill '$($skillDir.Name)' -> $targetPath" -ForegroundColor Green
+
+    $envPath = Join-Path $targetPath '.env'
+    $envExamplePath = Join-Path $targetPath '.env.example'
+    if ($preservedEnvContent) {
+        Set-Content -Path $envPath -Value $preservedEnvContent -NoNewline
+        Write-Host "  Preserved existing .env" -ForegroundColor DarkGray
+    }
+    elseif (Test-Path $envExamplePath) {
+        Copy-Item -Path $envExamplePath -Destination $envPath -Force
+        Write-Host "  Seeded .env from .env.example -- edit $envPath with your credentials" -ForegroundColor Yellow
+    }
+
+    $requirementsPath = Join-Path $targetPath 'requirements.txt'
+    if (Test-Path $requirementsPath) {
+        $pythonCmd = Get-Command python -ErrorAction SilentlyContinue
+        if (-not $pythonCmd) {
+            Write-Warning "  python not found on PATH; skipping automatic dependency install for '$($skillDir.Name)'. Run 'pip install -r requirements.txt' in $targetPath manually."
+        }
+        else {
+            $venvPath = Join-Path $targetPath '.venv'
+            $venvPython = Join-Path $venvPath 'Scripts\python.exe'
+            try {
+                if (-not (Test-Path $venvPython)) {
+                    Write-Host "  Creating virtual environment..." -ForegroundColor DarkGray
+                    & $pythonCmd.Source -m venv $venvPath
+                }
+                Write-Host "  Installing dependencies into private virtual environment..." -ForegroundColor DarkGray
+                & $venvPython -m pip install --quiet --upgrade pip
+                & $venvPython -m pip install --quiet -r $requirementsPath
+                Write-Host "  Dependencies ready at $venvPython" -ForegroundColor DarkGray
+            }
+            catch {
+                Write-Warning "  Failed to provision virtual environment for '$($skillDir.Name)': $_"
+            }
+        }
+    }
 }
 
 Write-Host "`nDone. Restart VS Code (or reload the window) for GitHub Copilot to pick up new/updated skills." -ForegroundColor Cyan
