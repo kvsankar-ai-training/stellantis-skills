@@ -21,6 +21,7 @@ Before dispatching any subagent, pin down what both of them will be told, since 
 
 - The precise scope of the unit of work (one feature/fix, not a whole system) — keep it small enough to cycle through Red/Green/Refactor in one pass.
 - The observable behavior/spec: inputs, outputs, error conditions, edge cases already known from the user or source documents (SRS, SDD, acceptance tests). Quote or summarize the relevant spec text so the test-writer isn't guessing.
+- The test level(s) this unit of work actually calls for: if an SDD with a test strategy exists (e.g., from `stellantis-design-create`), identify which specific test IDs apply — component (`ct-*`), integration (`it-*`), contract (`ctr-*`), E2E (`e2e-*`), or NFR verification (`nfr-*`) — and hand the test-writer only the ones relevant to this unit of work, not every level by default.
 - The language, test framework/runner, and file/module layout conventions already used in the repo (check existing tests for naming and structure conventions before writing the prompt).
 - The public interface/contract the code must expose (function/class/endpoint signatures) if the user or spec already fixes it. If not fixed, let the test-writer subagent propose the interface as part of writing tests — the interface emerges from the tests, not the other way around.
 

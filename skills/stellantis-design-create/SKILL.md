@@ -1,7 +1,7 @@
 ---
 name: stellantis-design-create
-description: 'Create a Software Design Document (SDD) from an existing SRS/requirements or a rough feature idea, delivered as a self-contained HTML document with rendered component, sequence, and deployment diagrams, capturing key decisions as Architecture Decision Records (ADRs) including explicit tech stack choices (language/runtime, framework(s), datastore only if one is actually needed, key libraries), the simplest design that solves the problem (no over-engineering), UX mockups (user-flow diagrams and low-fidelity screen wireframes) for any system with a UI, whichever boundary contracts the system actually has (an OpenAPI spec for an HTTP API, a UI/component contract for a frontend, a CLI argument spec for a tool, a public API surface for a library — only produced when that boundary applies), a data boundary only when the system owns persisted data, an explicit security posture (authN/authZ, data protection, threats, secrets), an observability & operability plan (logging, metrics, tracing, health checks, alerting), performance & scalability NFRs stated as concrete SLOs, an error-handling & resilience strategy (retries, timeouts, failure modes), a functional-core/imperative-shell internal architecture honoring loose coupling and Single Responsibility, component-level tests derived from acceptance tests (ATs) plus the design, and a traceability matrix linking design elements back to use cases/requirements. Applies to any kind of system — backend services, frontend/UI apps, mobile apps, CLIs, libraries/SDKs, or full-stack systems — not backend-only; the applicable boundary/data/deployment/UX/cross-cutting artifacts are derived from what the system actually is, never assumed, and scoped down (even to "not applicable") for systems where a concern genuinely doesn''t apply. Use when asked to create, write, draft, or scaffold a design document, technical design, architecture doc, SDD, or when asked to produce ADRs, choose/document a tech stack, UX mockups/wireframes/user flows, an API/UI/CLI/library contract, a database schema (if applicable), architecture diagrams (component/sequence/deployment), a security/observability/performance/resilience design, component-level test plans, or a design-to-requirements traceability matrix. DO NOT USE FOR eliciting/writing product requirements (use stellantis-srs-create instead), do not use for high-fidelity/pixel-perfect visual design (branding, color, typography — this skill only produces low-fidelity structural wireframes), and do not use for reviewing an already-written design (that is a separate review activity).'
-argument-hint: 'An SRS/requirements doc (ideally with Acceptance Tests) or a rough description of the feature/system to design (state the kind of system — backend service, frontend/UI, mobile, CLI, library, or full-stack — if not obvious), and optionally target file paths for the SDD, ADRs, UX mockups, contract spec(s), schema, and component-test doc'
+description: 'Create a Software Design Document (SDD) from an existing SRS/requirements or a rough feature idea, delivered as a self-contained HTML document with rendered component, sequence, and deployment diagrams, capturing key decisions as Architecture Decision Records (ADRs) including explicit tech stack choices (language/runtime, framework(s), datastore only if one is actually needed, key libraries), the simplest design that solves the problem (no over-engineering), UX mockups (user-flow diagrams and low-fidelity screen wireframes) for any system with a UI, whichever boundary contracts the system actually has (an OpenAPI spec for an HTTP API, a UI/component contract for a frontend, a CLI argument spec for a tool, a public API surface for a library — only produced when that boundary applies), a data boundary only when the system owns persisted data, an explicit security posture (authN/authZ, data protection, threats, secrets), an observability & operability plan (logging, metrics, tracing, health checks, alerting), performance & scalability NFRs stated as concrete SLOs, an error-handling & resilience strategy (retries, timeouts, failure modes), a functional-core/imperative-shell internal architecture honoring loose coupling and Single Responsibility, a full test strategy spanning component, cross-component integration, boundary-contract, end-to-end, and NFR-verification (security/performance/resilience) tests derived from acceptance tests (ATs) plus the design, and a traceability matrix linking design elements back to use cases/requirements. Applies to any kind of system — backend services, frontend/UI apps, mobile apps, CLIs, libraries/SDKs, or full-stack systems — not backend-only; the applicable boundary/data/deployment/UX/cross-cutting/test-level artifacts are derived from what the system actually is, never assumed, and scoped down (even to "not applicable") for systems where a concern genuinely doesn''t apply. Use when asked to create, write, draft, or scaffold a design document, technical design, architecture doc, SDD, or when asked to produce ADRs, choose/document a tech stack, UX mockups/wireframes/user flows, an API/UI/CLI/library contract, a database schema (if applicable), architecture diagrams (component/sequence/deployment), a security/observability/performance/resilience design, a multi-level test strategy (component/integration/contract/E2E/NFR), or a design-to-requirements traceability matrix. DO NOT USE FOR eliciting/writing product requirements (use stellantis-srs-create instead), do not use for high-fidelity/pixel-perfect visual design (branding, color, typography — this skill only produces low-fidelity structural wireframes), and do not use for reviewing an already-written design (that is a separate review activity).'
+argument-hint: 'An SRS/requirements doc (ideally with Acceptance Tests) or a rough description of the feature/system to design (state the kind of system — backend service, frontend/UI, mobile, CLI, library, or full-stack — if not obvious), and optionally target file paths for the SDD, ADRs, UX mockups, contract spec(s), schema, and test-plan doc'
 ---
 
 # Software Design Creation
@@ -11,10 +11,10 @@ Act as a senior software architect turning requirements (or a rough idea, if no 
 ## When to Use
 
 - Requirements exist (an SRS, or a short description) and the next step is deciding *how* to build it — for any kind of system, not just a backend service.
-- The user explicitly asks for a design doc, technical design, architecture, ADRs, UX mockups/wireframes/user flows, a boundary contract (API/UI/CLI/library), a DB schema, architecture diagrams, a security/observability/performance/resilience posture, component-level tests, or a traceability matrix.
+- The user explicitly asks for a design doc, technical design, architecture, ADRs, UX mockups/wireframes/user flows, a boundary contract (API/UI/CLI/library), a DB schema, architecture diagrams, a security/observability/performance/resilience posture, a test strategy spanning component/integration/contract/E2E/NFR levels, or a traceability matrix.
 - The user wants key technical decisions captured durably (as ADRs) rather than left as chat history.
 
-If an Acceptance Tests document exists from `stellantis-srs-create`, read it before drafting — component-level tests (Phase 15) and traceability (Phase 16) both depend on it.
+If an Acceptance Tests document exists from `stellantis-srs-create`, read it before drafting — the test strategy (Phase 15) and traceability (Phase 16) both depend on it.
 
 Do not use this skill to elicit or write product requirements — that's `stellantis-srs-create`. If no requirements exist yet and the user is only describing a rough idea, briefly confirm scope before designing rather than re-running a full requirements interview.
 
@@ -184,29 +184,67 @@ Structure the internal architecture of any non-trivial component using this patt
 - **Functional core**: pure business logic/domain rules — functions with no I/O, no mutation of external state, and no side effects. Given the same inputs, always the same outputs. This is where domain rules, calculations, validations, and decisions live, and where most unit tests should target.
 - **Imperative shell**: a thin outer layer that handles I/O (DB calls, HTTP calls, filesystem, UI rendering/DOM updates, clock, randomness) and orchestrates calls into the functional core. The shell decides *when* and *with what data* to call the core, but contains as little logic as possible itself.
 - In the SDD, show this split concretely: name the core modules/functions (pure) versus the shell modules (I/O-handling), and note the direction of dependency (shell depends on core, never the reverse).
-- This is what makes the design testable without heavy mocking: the functional core is tested directly with plain inputs/outputs, and the shell is tested with a thin layer of integration tests instead of exhaustively unit-testing I/O paths.
+- This is what makes the design testable without heavy mocking: the functional core is tested directly with plain inputs/outputs, and the shell is tested with a thin layer of component-level shell tests (Phase 15) with the I/O faked, rather than exhaustively unit-testing I/O paths — real (unmocked) I/O is instead exercised by the integration tests in Phase 15.
 - Don't force a functional core split onto trivial CRUD passthroughs with no real logic — apply it where there's actual domain logic to isolate; forcing it everywhere adds ceremony without benefit (Phase 2 still applies).
 
-## Phase 15: Component-Level Tests (from ATs + Design)
+## Phase 15: Test Strategy Across Levels
 
-Derive a component-level test plan by combining the Acceptance Tests (Given/When/Then, from `stellantis-srs-create`) with the internal design (Phase 13 components, Phase 14 core/shell split):
+Derive a full test plan spanning every level the design actually has — component, cross-component integration, boundary contract, end-to-end, and NFR verification — by combining the Acceptance Tests (Given/When/Then, from `stellantis-srs-create`) with the internal design (Phase 13 components, Phase 14 core/shell split), the boundary contracts (Phase 6), and the Security/Observability/Performance/Resilience decisions (Phases 9–12). Don't produce every level for every design — apply the same proportionality rule as everywhere else: a level with nothing genuinely at that scope (e.g., no integration tests for a system with exactly one component) is stated "not applicable," not padded out.
 
-- For each AT, identify which component(s) it exercises and split it into the component-level tests actually needed to prove it: a **functional core test** (pure input/output, no mocking, covers the domain rule/branch behind the AT) and, where the AT crosses an I/O boundary, a thin **shell/integration test** (verifies the shell wires the right data into the core and persists/returns the result correctly).
-- Don't just copy each AT verbatim to the component level — decompose it. One AT can require several component tests (e.g., a core rule test plus an integration test), and one component test may support multiple ATs; record both directions.
-- Use a table per component (or one consolidated table for small designs):
+**Component-level tests** — one component's internal logic, in isolation:
 
-  | Test ID | Component | Layer (core \| shell) | Verifies AT(s) | Given | When | Then |
-  | --- | --- | --- | --- | --- | --- | --- |
-
-- Prefix component test IDs distinctly from ATs, e.g. `ct-<slug>`, so they're never confused with the acceptance-test IDs they trace to.
+- For each AT, identify which component(s) it exercises and split it into the component-level tests actually needed to prove it: a **functional core test** (pure input/output, no mocking, covers the domain rule/branch behind the AT) and, where the AT crosses an I/O boundary, a thin **shell test** (verifies the shell wires the right data into the core and persists/returns the result correctly, with the I/O itself faked/mocked).
+- Don't just copy each AT verbatim to the component level — decompose it. One AT can require several component tests, and one component test may support multiple ATs; record both directions.
 - Cover every branch/edge case named in the functional core (Phase 14) even if no single AT calls it out explicitly — flag any such gap-filling test as design-driven rather than AT-driven so the distinction is visible.
 - Skip generating component tests for trivial passthrough components with no branching logic (consistent with Phase 14's guidance not to force a core split where there's nothing to isolate).
+- Prefix IDs `ct-<slug>`.
+
+**Integration tests** — real collaboration across two or more components, or against a real (or realistic, e.g. containerized) external dependency, with no mocking of the boundary under test:
+
+- Write one where a use case's correctness genuinely depends on components wiring together correctly, not just each component's internals being right in isolation — e.g., a workflow crossing multiple internal components, a real database read/write against the schema from Phase 7, or a call to a real external service/API the system integrates with.
+- Don't duplicate what a component-level shell test (mocked I/O) already proves — an integration test exists specifically to catch wiring/contract mismatches that mocks would hide.
+- Keep the count proportional to the number of genuine multi-component workflows (Phase 8 sequence diagrams are a good source) — not one per component pairing regardless of whether they actually interact meaningfully.
+- Prefix IDs `it-<slug>`.
+
+**Contract tests** — verifying a boundary contract (Phase 6) is actually honored by its implementation and/or its consumer, only for boundary contracts that exist in this design:
+
+- **HTTP API**: validate real request/response payloads against the OpenAPI schema (e.g., schema-validation middleware in tests, or a consumer-driven contract test if there's a separate consumer team/service) — catches drift between the spec and the implementation that unit/integration tests focused on business logic would miss.
+- **UI/component contract**: a test verifying a component's actual props/emitted-events surface matches what Phase 6 defined (e.g., a type-check/snapshot test of the component's public interface), not a full UI behavior test (that's covered by E2E below).
+- **CLI contract**: a test invoking the actual command/flag surface and asserting the documented exit codes/stdout-stderr shape match Phase 6.
+- **Public library/SDK surface**: a test (or automated check, e.g. an API-diff tool) asserting the exported surface matches what Phase 6 declared and that a version bump follows semver rules if the surface changed.
+- Skip this category entirely, explicitly, for boundary kinds not present in this design.
+- Prefix IDs `ctr-<slug>`.
+
+**End-to-end (E2E) tests** — the full system, driven the way a real user/caller would, with no internal component mocked:
+
+- For each significant use case/workflow (the same ones with sequence diagrams in Phase 8), state whether it's covered by an E2E test that exercises the real UI/CLI/API entry point through to real persistence (Phase 7) — this is what actually proves an AT end-to-end, versus proving it piecewise at the component/integration level.
+- Keep E2E coverage to the primary happy paths and the highest-value failure paths per workflow — E2E tests are the most expensive/slowest level, so exhaustive edge-case coverage belongs at the component level (above), not here.
+- For a system with no meaningful "end" to drive through (e.g., a pure library with no UI/CLI/API entry point), state explicitly that E2E doesn't apply and rely on contract tests (above) as the outermost verification instead.
+- Prefix IDs `e2e-<slug>`; map each directly to the AT(s) it proves end-to-end.
+
+**NFR verification tests** — proving the Security, Observability, Performance, and Resilience decisions (Phases 9–12) actually hold, not just that they were designed:
+
+- **Security**: test cases for the authZ rules from Phase 9 (e.g., an unauthorized caller is rejected, a user can't access another user's data), and for the specific threats called out (e.g., an injection payload is rejected/escaped).
+- **Performance**: a load/perf test asserting the SLOs stated in Phase 11 (e.g., "p95 latency < 300ms at 100 req/s") under realistic load — only where a concrete SLO exists to verify; don't invent a load test for a system with no stated scale requirement.
+- **Resilience**: a failure-injection/chaos-style test proving the retry/timeout/circuit-breaker behavior from Phase 12 actually engages when the dependency it protects against fails (e.g., a simulated timeout on an external call triggers the documented fallback).
+- **Observability**: a smoke check that the key metrics/logs from Phase 10 are actually emitted during a representative run — lightweight, not a full observability test suite.
+- Skip any of the above explicitly where the corresponding phase concluded "not applicable" for this system.
+- Prefix IDs `nfr-<slug>`.
+
+Format, for every level above:
+
+- Use a table per level (or one consolidated table for small designs):
+
+  | Test ID | Level | Component(s)/Boundary | Verifies AT(s)/NFR | Given | When | Then |
+  | --- | --- | --- | --- | --- | --- | --- |
+
+- Keep test IDs prefixed distinctly per level (`ct-`, `it-`, `ctr-`, `e2e-`, `nfr-`) so no ID is ever ambiguous about which level it belongs to.
 
 ## Phase 16: Traceability
 
 Produce a single traceability matrix tying requirements all the way through to design and tests — gaps here (a requirement with no component, or a component with no test) are defects in the design pass, not acceptable omissions:
 
-| Requirement / Use Case | Component(s) | UX Mockup(s) | Boundary Contract Item(s) | Schema Table(s) | ADR(s) | Diagram(s) | Component Test(s) |
+| Requirement / Use Case | Component(s) | UX Mockup(s) | Boundary Contract Item(s) | Schema Table(s) | ADR(s) | Diagram(s) | Test(s) (ct-/it-/ctr-/e2e-/nfr-) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 
 - One row per use case (or functional requirement, for cross-cutting NFR-driven rows); populate every column that applies — an empty column is a legitimate "not applicable," but an untraced use case (no component at all) must be called out as a gap, not left blank silently.
@@ -233,7 +271,7 @@ Deliver the SDD as a single self-contained HTML file, not plain Markdown — thi
   11. **Performance & Scalability** — the SLOs and bottleneck/mitigation summary from Phase 11; state explicitly if the system has no meaningful scale requirement.
   12. **Error Handling & Resilience** — the error-shape, failure-mode, and resilience-pattern summary from Phase 12.
   13. **Decisions** — a table of ADRs (number, title, status) linking into the ADR directory; don't restate their content.
-  14. **Component-Level Tests** — a summary/link to the component test doc (Phase 15); embed the table directly if it's small, otherwise link out.
+  14. **Test Strategy** — a summary/link to the test plan doc (Phase 15), covering component, integration, contract, E2E, and NFR verification tests; embed the table(s) directly if small, otherwise link out.
   15. **Traceability** — the matrix from Phase 16, embedded as an HTML table so it's viewable without opening another file.
   16. **Open Questions / Future Considerations** — anything explicitly deferred, so it's clear it was considered and intentionally excluded from this design pass.
 - Keep the HTML dependency-free beyond the single Mermaid CDN script — no build step should be required to view the document; opening the file in a browser must be sufficient.
@@ -246,7 +284,7 @@ Deliver the SDD as a single self-contained HTML file, not plain Markdown — thi
   - `docs/design/ux/` for user-flow diagrams and screen wireframes, if the system has a UI (Phase 5) — omit if it doesn't
   - `docs/design/openapi.yaml` for an HTTP API spec, if the system has one (Phase 6) — substitute the appropriate contract file/format for other boundary kinds (e.g., a UI component contract doc, a CLI reference, a library's public API/type declarations), or omit entirely if no such contract applies
   - `docs/design/schema.sql` (or the appropriate format for the target datastore) for the database schema, only if the system owns persisted state (Phase 7) — omit if it doesn't
-  - `docs/design/Component-Tests.md` for the component-level test plan (Phase 15)
+  - `docs/design/Test-Plan.md` for the full test strategy (component, integration, contract, E2E, and NFR verification tests, Phase 15)
 - Confirm scope (Phase 1, including the kind of system) before producing artifacts if requirements are ambiguous or no SRS exists; don't silently invent scope or assume a backend service by default.
-- After creating the documents, briefly summarize what was produced (ADR count/titles including the tech stack decisions, UX mockups produced if applicable, boundary contract(s) produced and their size, schema table count if applicable, diagram count, security/observability/performance/resilience posture in one line each, component-test count, and any traceability gaps found) rather than repeating full content back in chat.
+- After creating the documents, briefly summarize what was produced (ADR count/titles including the tech stack decisions, UX mockups produced if applicable, boundary contract(s) produced and their size, schema table count if applicable, diagram count, security/observability/performance/resilience posture in one line each, test count per level (component/integration/contract/E2E/NFR), and any traceability gaps found) rather than repeating full content back in chat.
 - If a requirement forces added complexity (e.g., a second datastore, an async boundary), say so explicitly and point to the requirement/ADR that justifies it — never introduce complexity silently.

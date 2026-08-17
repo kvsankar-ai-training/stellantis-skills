@@ -1,7 +1,7 @@
 ---
 name: stellantis-plan-create
 description: 'Create a delivery/implementation plan from an existing SRS and Software Design Document (SDD), expressed as a set of scoped, dependency-ordered pull requests (PRs). Each PR gets a clear scope statement, a rough size guardrail (~1000 LOC, soft not hard), a list of demonstrable/verifiable acceptance criteria, and the tests to run against it. The plan also renders a PR dependency graph (Mermaid) showing which PRs block which, and explicitly calls out which PRs can be worked in parallel. Use when asked to create, write, draft, or scaffold a delivery plan, implementation plan, PR plan/breakdown, rollout plan, or work breakdown structure from requirements and/or design docs, or when asked to sequence/size/parallelize a set of PRs and identify their dependencies. DO NOT USE FOR writing the SRS itself (use stellantis-srs-create) or producing the architecture/design (use stellantis-design-create) -- this skill assumes requirements and design already exist (or are described well enough to plan from) and focuses purely on sequencing delivery.'
-argument-hint: 'An SRS and/or SDD (with ADRs, OpenAPI spec, schema, component tests, traceability matrix) or a description of the requirements/design to plan delivery for, and optionally a target file path for the plan document'
+argument-hint: 'An SRS and/or SDD (with ADRs, OpenAPI spec, schema, test strategy across component/integration/contract/E2E/NFR levels, traceability matrix) or a description of the requirements/design to plan delivery for, and optionally a target file path for the plan document'
 ---
 
 # Delivery Plan Creation
@@ -18,7 +18,7 @@ Do not use this skill to write requirements (`stellantis-srs-create`) or produce
 
 ## Phase 1: Ground the Plan in Existing Artifacts
 
-- Read the SRS (features, use cases, functional/non-functional requirements, acceptance tests) and the SDD (components, UX mockups if any, boundary contracts, data boundary if any, ADRs, functional-core/imperative-shell split, component-level tests, traceability matrix) before drafting anything — the SDD may describe a backend service, a frontend/UI app, a mobile app, a CLI, a library, or a full-stack system; ground PR scopes in whichever it actually is, not in an assumed backend shape.
+- Read the SRS (features, use cases, functional/non-functional requirements, acceptance tests) and the SDD (components, UX mockups if any, boundary contracts, data boundary if any, ADRs, functional-core/imperative-shell split, the test strategy across component/integration/contract/E2E/NFR levels, traceability matrix) before drafting anything — the SDD may describe a backend service, a frontend/UI app, a mobile app, a CLI, a library, or a full-stack system; ground PR scopes in whichever it actually is, not in an assumed backend shape.
 - If either document is missing, ask the user for it or enough detail to substitute — do not silently fabricate requirements or architecture to fill gaps.
 - Identify the natural "seams" the design already gives you: components/modules (Phase 13/14 of the SDD), UX mockups/screens (Phase 5, if the system has a UI), boundary contract items — API endpoints, UI components, CLI commands, or exported library functions (Phase 6), schema tables if the system owns persisted state (Phase 7), security/observability/performance/resilience decisions (Phase 9–12, where they drive dedicated infrastructure PRs), and ADR-driven infrastructure (Phase 3/4) — these are the raw material for PR scopes, not something to invent independently of the design.
 - Note any ordering constraints already implied by the design: a datastore/schema typically must exist before code that reads/writes it; a shared library/interface typically must exist before consumers of it; a boundary contract (API, event schema, exported function signature) typically must exist (even as a stub) before a consumer (frontend, another service, a CLI) can integrate against it; a UX mockup typically settles before its corresponding UI/component contract is built against.
@@ -57,10 +57,10 @@ Every PR must be independently demonstrable and verifiable on its own — a PR t
 For each PR, specify:
 
 - **Demo**: a concrete, observable way to show the PR works — a request/response example (for an API PR), a UI interaction (for a frontend PR), a query result (for a schema/data PR), or a CLI command and its output. State it concretely enough that someone unfamiliar with the internals could follow it, not "verify it works."
-- **Tests to run**: name the actual tests (existing or new) that verify the PR, cross-referencing:
-  - Component-level tests from the SDD (`ct-*` IDs) that this PR should now make pass, if applicable.
+- **Tests to run**: name the actual tests (existing or new) that verify the PR, cross-referencing the full test-level set from the SDD's test strategy where applicable:
+  - Component tests (`ct-*`), integration tests (`it-*`), contract tests (`ctr-*`), E2E tests (`e2e-*`), and NFR verification tests (`nfr-*`) from the SDD that this PR should now make pass — only the levels actually relevant to this PR's scope, not every level for every PR.
   - Acceptance tests from the SRS (`at-*` IDs) that this PR fully or partially satisfies.
-  - Any new tests the PR itself must add (unit tests for new functional-core logic, an integration/shell test for new I/O, a migration test), named descriptively even if the exact test file doesn't exist yet.
+  - Any new tests the PR itself must add, named descriptively even if the exact test file doesn't exist yet (e.g., a unit test for new functional-core logic, an integration test for new cross-component wiring, a contract test for a changed boundary, a migration test).
   - The test commands/suite to run (e.g., `npm test -- users`, `pytest tests/posts`) if the repo's conventions are known; otherwise describe the test scope in prose.
 - If a PR cannot be verified without a later PR also landing (e.g., a backend endpoint with no UI yet, or a UI screen with no backing API yet), say so explicitly and demonstrate at the boundary available (e.g., a `curl`/HTTP client call, a component/unit test harness, or a CLI invocation) rather than marking it "not verifiable."
 
