@@ -18,10 +18,10 @@ Do not use this skill to write requirements (`stellantis-srs-create`) or produce
 
 ## Phase 1: Ground the Plan in Existing Artifacts
 
-- Read the SRS (features, use cases, functional/non-functional requirements, acceptance tests) and the SDD (components, API boundary, data boundary, ADRs, functional-core/imperative-shell split, component-level tests, traceability matrix) before drafting anything.
+- Read the SRS (features, use cases, functional/non-functional requirements, acceptance tests) and the SDD (components, UX mockups if any, boundary contracts, data boundary if any, ADRs, functional-core/imperative-shell split, component-level tests, traceability matrix) before drafting anything — the SDD may describe a backend service, a frontend/UI app, a mobile app, a CLI, a library, or a full-stack system; ground PR scopes in whichever it actually is, not in an assumed backend shape.
 - If either document is missing, ask the user for it or enough detail to substitute — do not silently fabricate requirements or architecture to fill gaps.
-- Identify the natural "seams" the design already gives you: components/modules (Phase 8/9 of the SDD), API endpoints (Phase 5), schema tables (Phase 6), and ADR-driven infrastructure (Phase 3/4) — these are the raw material for PR scopes, not something to invent independently of the design.
-- Note any ordering constraints already implied by the design: a datastore/schema typically must exist before code that reads/writes it; a shared library/interface typically must exist before consumers of it; an API contract typically must exist (even as a stub) before a frontend can integrate against it.
+- Identify the natural "seams" the design already gives you: components/modules (Phase 9/10 of the SDD), UX mockups/screens (Phase 5, if the system has a UI), boundary contract items — API endpoints, UI components, CLI commands, or exported library functions (Phase 6), schema tables if the system owns persisted state (Phase 7), and ADR-driven infrastructure (Phase 3/4) — these are the raw material for PR scopes, not something to invent independently of the design.
+- Note any ordering constraints already implied by the design: a datastore/schema typically must exist before code that reads/writes it; a shared library/interface typically must exist before consumers of it; a boundary contract (API, event schema, exported function signature) typically must exist (even as a stub) before a consumer (frontend, another service, a CLI) can integrate against it; a UX mockup typically settles before its corresponding UI/component contract is built against.
 
 ## Phase 2: Slice Work Into PRs
 
