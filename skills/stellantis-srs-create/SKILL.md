@@ -1,6 +1,6 @@
 ---
 name: stellantis-srs-create
-description: 'Create a Software Requirements Specification (SRS) from a rough product or feature idea, following a Leffingwell-style layered model (Product Vision -> User Needs -> Features -> Use Cases -> Functional/Non-Functional Requirements) with slug-based identifiers and a separate Acceptance Tests document. Use when asked to create, write, draft, or scaffold an SRS, requirements document, or spec starting from an idea or a short description, especially when the user wants a structured requirements-elicitation interview before drafting (e.g. "help me write an SRS", "create requirements for my app idea", "draft a spec for X"). DO NOT USE FOR reviewing an existing SRS (use stellantis-spec-review instead), and do not use for generating architecture/design documents (defer those to a separate SDD).'
+description: 'Create a Software Requirements Specification (SRS) from a rough product or feature idea, following a Leffingwell-style layered model (Product Vision -> User Needs -> Features -> Use Cases -> Functional/Non-Functional Requirements) with slug-based identifiers and a separate Acceptance Tests document. Use when asked to create, write, draft, or scaffold an SRS, requirements document, or spec starting from an idea or a short description, especially when the user wants a structured requirements-elicitation interview before drafting (e.g. "help me write an SRS", "create requirements for my app idea", "draft a spec for X"). DO NOT USE FOR reviewing an existing SRS (use stellantis-spec-review instead), and do not use for generating architecture/design documents (use stellantis-design-create for that).'
 argument-hint: 'A rough description of the product/feature idea to turn into an SRS, and optionally target file path(s) for the SRS and acceptance tests documents'
 ---
 
@@ -14,7 +14,7 @@ Act as a senior requirements analyst helping turn a rough product idea into a ri
 - The user explicitly asks for an SRS, requirements doc, or spec to be created/drafted/scaffolded.
 - The user wants to be interviewed/asked questions to flesh out an idea into requirements, rather than have requirements invented for them.
 
-Do not use this skill to review an already-written SRS (that's a separate review activity) or to produce architecture/technology design — this skill stays technology-agnostic and defers design to a future Software Design Document (SDD).
+Do not use this skill to review an already-written SRS (that's a separate review activity) or to produce architecture/technology design — this skill stays technology-agnostic and defers design to `stellantis-design-create` for a Software Design Document (SDD).
 
 ## Phase 1: Elicitation (Before Drafting Anything)
 
@@ -130,7 +130,7 @@ Keep the Use Case Summary table (ID / Name / Actor / Feature) ahead of the detai
 
 - Every layer must trace downward and upward: a feature with no use case, a use case with no requirement, or a requirement with no acceptance test is a gap to flag, not silently drop.
 - When requirements or use cases change later, keep the SRS and the AT document in sync in the same edit rather than deferring the update.
-- Keep the SRS technology-agnostic. Architecture, stack, and implementation details belong in a separate Software Design Document (SDD), not the SRS.
+- Keep the SRS technology-agnostic. Architecture, stack, and implementation details belong in a separate Software Design Document (SDD, see `stellantis-design-create`), not the SRS.
 - Maintain an explicit "Out of Scope" list in the Introduction for things permanently excluded from the product's intent, and a separate "Future Considerations" list at the end for things intentionally deferred but plausible later. Don't conflate the two.
 - When the elicitation phase or a later review surfaces an open question that materially affects requirements (security posture, data rules, ambiguous behavior), resolve it in the document itself (as a requirement, a scope note, or a defined behavior) rather than leaving it as a lingering question — record the decision, don't just record that it was asked.
 
