@@ -30,7 +30,7 @@ Break the full scope into a set of PRs using these rules:
 - **One clear scope per PR.** Each PR should be describable in one sentence ("Adds the `users` table and repository layer", "Implements the `POST /posts` endpoint and its functional-core validation rules"). If a PR's scope needs an "and" joining two unrelated concerns, split it.
 - **Size guardrail, not a hard limit.** Aim for roughly ≤1000 lines of code (net diff, excluding generated/vendored code and lockfiles) per PR. This is a guide to keep PRs reviewable — don't artificially split a cohesive, hard-to-separate change just to hit the number, and don't silently let scope creep push a PR to several times the guardrail either. When a PR is expected to exceed it, say so explicitly and explain why splitting further isn't practical (e.g., a schema migration plus its only consumer must land atomically).
 - **Vertical slices over horizontal layers where possible.** Prefer a PR that delivers one thin end-to-end capability (e.g., one use case through API → core → persistence) over a PR that does "all repositories" followed by another that does "all endpoints" — vertical slices stay demonstrable (Phase 4) and reduce cross-PR coupling. Horizontal/foundational PRs (schema setup, shared auth middleware, CI scaffolding) are appropriate early in the sequence when multiple later PRs genuinely depend on them.
-- **Trace every PR back to the source artifacts.** Each PR should map to one or more use cases/requirements (from the SRS) and one or more components/endpoints/tables (from the SDD). A PR with no traceable source is scope invented by the plan, not derived from requirements — call it out explicitly if that happens (e.g., necessary infrastructure/tooling work).
+- **Trace every PR back to the source artifacts.** Each PR should map to one or more use cases/requirements (from the SRS) and one or more components/boundary-contract-items/tables (from the SDD). A PR with no traceable source is scope invented by the plan, not derived from requirements — call it out explicitly if that happens (e.g., necessary infrastructure/tooling work).
 - Give each PR a stable slug identifier, `pr-<slug>` (e.g., `pr-user-schema`, `pr-create-post-endpoint`), never a sequential number alone — numbers get reordered as dependencies shift; slugs stay stable for cross-references.
 
 ## Phase 3: Identify Dependencies and the PR Graph
@@ -62,7 +62,7 @@ For each PR, specify:
   - Acceptance tests from the SRS (`at-*` IDs) that this PR fully or partially satisfies.
   - Any new tests the PR itself must add (unit tests for new functional-core logic, an integration/shell test for new I/O, a migration test), named descriptively even if the exact test file doesn't exist yet.
   - The test commands/suite to run (e.g., `npm test -- users`, `pytest tests/posts`) if the repo's conventions are known; otherwise describe the test scope in prose.
-- If a PR cannot be verified without a later PR also landing (e.g., a backend endpoint with no UI yet), say so explicitly and demonstrate at the boundary available (e.g., `curl`/HTTP client against the endpoint) rather than marking it "not verifiable."
+- If a PR cannot be verified without a later PR also landing (e.g., a backend endpoint with no UI yet, or a UI screen with no backing API yet), say so explicitly and demonstrate at the boundary available (e.g., a `curl`/HTTP client call, a component/unit test harness, or a CLI invocation) rather than marking it "not verifiable."
 
 ## Phase 5: PR Specification Format
 
